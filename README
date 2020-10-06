@@ -1,0 +1,106 @@
+Contact Information:
+	name: Jeffrey Colgan, email: colganj@colorado.edu, cell #: 720-320-5328 (Leave a message, or I might not return your call!)
+	other: I regularly attend zoom lectures and recitations live, so you could also message me during class.
+
+File Information:
+
+     helloworld.c:  This file contains the function definition for the system call sys_helloworld outlined in the tutorial section of this assignment.
+     		    There is not much to say about this file, since it was written for us in the assignment instructions.  System call number in the
+		    system call table: 333.
+		    Within the build, this file should be placed at the following absolute path:
+		    /home/kernel/linux-hwe-4.15.0/arch/x86/kernel/helloworld.c
+
+     cs3753_add.c:   This file contains the function definition of the system call sys_cs3753_add function specified for the second part of this assignment.
+     		     As per the specifications, the function accepts number1 and number2 as arguments, as well as a pointer to the result.  The function adds
+		     number1 and number2, logs both numbers and the result with printk statements, stores the result in the user space result variable passed
+		     into the function, and returns "an appropriate value".  I interpreted this to mean that I should stick with the convention from the
+		     default system calls we used in this assignment, where a return value of 0 means the operation was a success, and a return value of -1 means
+		     the operation failed.
+		     Within the build, this file should be placed at the following absolute path:
+		     /home/kernel/linux-hwe-4.15.0/arch/x86/kernel/cs3753_add.c
+
+     Makefile:       This file has two modified lines to include the helloworld.c and cs3753_add.c files into the kernel build.  This modified file MUST replace the
+     		     following file, otherwise the build instructions located in this file will not work correctly!
+		     Within the build, this file should be placed at the following absolute path:
+		     /home/kernel/linux-hwe-4.15.0/arch/x86/kernel/Makefile
+
+     syscalls.h:	This modified header file contains the declarations of the system call functions, including the declarations of the functions defined in
+     		     	helloworld.c and cs3753_add.c .
+		     	Within the build, this file should be placed at the following absolute path:
+		     	/home/kernel/linux-4.15.0/include/linux/syscalls.h
+
+     syscall_64.tbl:	This modified system table includes table entries for the sys_helloworld() and sys_cs3753_add() system calls specified in the instructions in this
+     		     	assignment.  I defined sys_helloworld() with the system call number 333, and sys_cs3753_add() with the system call number 334.
+		     	Within the build, this file should be placed at the following absolute path:
+		     	/home/kernel/linux-4.15.0/arch/x86/entry/syscalls/syscall_64.tbl
+
+     helloworld_test.c  This is the user-space tester program that I wrote to test if the helloworld system call outlined in the assignment instructions was correctly implemented.
+     			This program can be built and run in any user-space directory of your choosing, and it will function as intended as long as you have rebuilt the kernel
+			according to the instructions below in this README file.
+
+     cs3753_add_test.c: This is the user-space tester program that I wrote to test the cs3753_add system call in the assignment specifications.  I ran a few extra tests in
+     			the advanced test function, so if, for the sake of grading, you just need simple output, you can simple comment out the section of the main method that
+			calls function advancedTest().  This file can be extracted to and built anywhere in user space, and it will function, provided you have rebuilt the kernel
+		     	as per the instructions provided in the section of the README below.
+
+     addTest.txt     	This file contains the results of the shell command "tail -n 10 /var/log/syslog" after running the cs3753_add_test.c test program.  I took the liberty of
+     		     	manually deleting all of the system logs that were not pertinent to the assignment (time changes, server stuff, etc.).  This was purely to make things easier
+		     	on the graders who have to read these documents.  I am happy to just run the commands in the interview if there are any questions.
+
+     testHello.txt   	This file contains the results of the shell command "tail -n 50 /var/log/syslog" after running the helloworld_test.c test program.  I took the liberty of
+     		     	manually deleting all of the system logs that were not pertinent to the assignment (time changes, server stuff, etc.).  This was done purely to make things
+		     	easier on the graders who have to read through all of this stuff.  I am happy to just run the commands after a run of the test program during the interview
+		     	if necessary.
+
+Building the kernel:
+
+	 Move the files into the appropriate absolute paths by navigating to the submitted directory, then executing the following shell commands:
+
+	      mv helloworld.c /home/kernel/linux-hwe-4.15.0/arch/x86/kernel
+	      mv cs3753_add.c /home/kernel/linux-hwe-4.15.0/arch/x86/kernel
+	      mv Makefile /home/kernel/linux-hwe-4.15.0/arch/x86/kernel
+	      mv syscalls.h /home/kernel/linux-hwe-4.15.0/include/linux
+	      mv syscall_64.tbl /home/kernel/linux-hwe-4.15.0/arch/x86/entry/syscalls
+
+	 Next build the kernel as per the instructions given in the assignment, execute the following shell commands:
+
+	      cd /home/kernel/linux-hwe-4.15.0
+	      sudo make -j2 CC="ccache gcc"
+	      sudo make -j2 modules_install
+	      sudo make -j2 install
+	      sudo reboot now
+
+Building the test program:
+
+	 Build and run the helloworld_test.c program in a directory of your choosing within user space by first placing the file
+	 helloworld_test.c into a directory of your choice, then executing the following commands in that directory:
+
+	     gcc -c helloworld_test.c
+	     gcc -o test_hello helloworld_test.o
+	     ./test_hello
+
+	 Then run "less -n 10 /var/log/syslog" to check that the helloworld kernel message was properly logged.
+
+	 Build and run the cs3753_add_test.c program in a directory of your choosing within user space by first placing the file
+	 cs3753_add_test.c into a directory of your choice, then executing the following commands in that directory:
+
+	     gcc -c cs3753_add_test.c
+	     gcc -o add_test cs3753_add_test.o
+	     ./add_test
+
+	 Ensure that the addends and sums were properly logged by running the command "less -n 50 /var/log/syslog".
+
+Other Pertinent Information:
+
+      	 Using the man pages for syscall, as specified in the assignment instructions, I used the following libraries in my tester programs:
+
+	     #include <unistd.h>
+	     #include <sys/syscall.h>
+
+	 Additionally, as per the supplemental week 2 reading material, in my implementation of sys_cs3753_add, I used the put_user function from the library
+	 to store kernel space data in user space variables:
+
+	     #include <linux/uaccess.h>
+	 
+
+    
